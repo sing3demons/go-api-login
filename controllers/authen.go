@@ -1,4 +1,4 @@
-package api
+package controllers
 
 import (
 	"app/db"
@@ -22,17 +22,7 @@ type userResponse struct {
 	Level    string
 }
 
-//SetupAuthenAPI - set-apisendTOAPISetupAuthenAPI
-func SetupAuthenAPI(r *gin.Engine) {
-	authenAPI := r.Group("api/v2")
-	{
-		authenAPI.POST("/login", login)
-		authenAPI.POST("/register", register)
-	}
-
-}
-
-func login(c *gin.Context) {
+func Login(c *gin.Context) {
 	var form formLogin
 	var user models.User
 	if err := c.ShouldBind(&form); err != nil {
@@ -55,7 +45,7 @@ func login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": serializedUser})
 }
 
-func register(c *gin.Context) {
+func Register(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBind(&user); err != nil {
 		c.JSON(401, gin.H{"status": "unable to bind data"})

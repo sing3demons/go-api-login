@@ -1,8 +1,7 @@
-package api
+package controllers
 
 import (
 	"app/db"
-	"app/interceptor"
 	"app/models"
 	"net/http"
 
@@ -40,27 +39,25 @@ type transactionResponse struct {
 	StaffID       string  `json:"staff_id"`
 }
 
-//SetupTransactionApi - api api.go
-func SetupTransactionApi(r *gin.Engine) {
-	transactionApi := r.Group("/api/v2")
-	{
-		transactionApi.GET("/transaction", getTransaction)
-		transactionApi.POST("/transaction", interceptor.JwtVerify, createTransaction)
-		transactionApi.PATCH("/transaction/:id", updateTransaction)
-		transactionApi.DELETE("/transaction/:id", deleteTransaction)
-	}
+type transactionResult struct {
+	ID            uint
+	Total         float64
+	Paid          float64
+	Change        float64
+	PaymentType   string
+	PaymentDetail string
+	OrderList     string
+	Staff         string
 }
 
-func getTransaction(c *gin.Context) {
-	var transaction []models.Transaction
-	db.GetDB().Find(&transaction)
+func GetTransaction(c *gin.Context) {
+	var result []transactionResult
+	db.GetDB().Debug().Raw("SELECT transactions.id, total, paid, change, payment_type, payment_detail, order_list, users.username as Staff, transactions.created_at FROM transactions join users on transactions.staff_id = users.id", nil).Scan(&result)
 
-	serializedArticle := []transactionResponse{}
-	copier.Copy(&serializedArticle, &transaction)
-	c.JSON(http.StatusOK, gin.H{"trsnsactions": serializedArticle})
+	c.JSON(http.StatusOK, gin.H{"trsnsactions": result})
 }
 
-func createTransaction(c *gin.Context) {
+func CreateTransaction(c *gin.Context) {
 	var form transactionForm
 
 	if err := c.ShouldBindJSON(&form); err != nil {
@@ -81,7 +78,7 @@ func createTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"trsnsaction": serializedArticle})
 }
 
-func updateTransaction(c *gin.Context) {
+func UpdateTransaction(c *gin.Context) {
 	var form updateTransactionForm
 	if err := c.ShouldBindJSON(&form); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -102,7 +99,7 @@ func updateTransaction(c *gin.Context) {
 
 }
 
-func deleteTransaction(c *gin.Context) {
+func DeleteTransaction(c *gin.Context) {
 	transaction, err := findByTransactionID(c)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})

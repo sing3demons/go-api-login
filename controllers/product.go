@@ -1,4 +1,4 @@
-package api
+package controllers
 
 import (
 	"app/db"
@@ -38,20 +38,7 @@ type updateProductForm struct {
 	Image *multipart.FileHeader `form:"image"`
 }
 
-// SetupProductAPI - call this method to setup product route group
-func SetupProductAPI(r *gin.Engine) {
-	productAPI := r.Group("/api/v2")
-	{
-		productAPI.GET("/products", getAllProduct)
-		productAPI.GET("/product", getProduct)
-		productAPI.GET("/product/:id", getProductByID)
-		productAPI.POST("/product" /*interceptor.JwtVerify,*/, createProduct)
-		productAPI.PUT("/product" /*interceptor.JwtVerify,*/, editProduct)
-		productAPI.DELETE("/product/:id" /*interceptor.JwtVerify,*/, deleteProduct)
-	}
-}
-
-func getProduct(ctx *gin.Context) {
+func GetProduct(ctx *gin.Context) {
 	var product models.Product
 	keyword := ctx.Query("keyword")
 	if keyword != "" {
@@ -63,7 +50,7 @@ func getProduct(ctx *gin.Context) {
 	ctx.JSON(200, product)
 }
 
-func getProductByID(c *gin.Context) {
+func GetProductByID(c *gin.Context) {
 	var product *models.Product
 	var err error
 	product, err = findByID(c)
@@ -87,7 +74,7 @@ func findByID(ctx *gin.Context) (*models.Product, error) {
 	return &product, nil
 }
 
-func getAllProduct(c *gin.Context) {
+func GetAllProduct(c *gin.Context) {
 	var products []models.Product
 	if err := db.GetDB().Order("id desc").Find(&products).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -97,7 +84,7 @@ func getAllProduct(c *gin.Context) {
 	c.JSON(200, gin.H{"result": serializedProducts})
 }
 
-func createProduct(c *gin.Context) {
+func CreateProduct(c *gin.Context) {
 	var form createProductForm
 	if err := c.ShouldBind(&form); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
@@ -119,7 +106,7 @@ func createProduct(c *gin.Context) {
 }
 
 //EditProduct
-func editProduct(c *gin.Context) {
+func EditProduct(c *gin.Context) {
 	var product models.Product
 
 	id, _ := strconv.ParseInt(c.PostForm("id"), 10, 32)
@@ -146,7 +133,7 @@ func editProduct(c *gin.Context) {
 }
 
 //Delete/:id
-func deleteProduct(ctx *gin.Context) {
+func DeleteProduct(ctx *gin.Context) {
 	product, err := findByID(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})

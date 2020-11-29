@@ -1,7 +1,7 @@
 package main
 
 import (
-	"app/api"
+	"app/routes"
 	"log"
 	"os"
 
@@ -18,7 +18,7 @@ func main() {
 	r := gin.Default()
 	r.Static("/images", "./uploaded/images")
 
-	api.Setup(r)
+	routes.Setup(r)
 
 	r.Run(":" + os.Getenv("PORT"))
 }
