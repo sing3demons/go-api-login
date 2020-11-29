@@ -9,10 +9,12 @@ import (
 
 var db *gorm.DB
 
+//GetDB - return db
 func GetDB() *gorm.DB {
 	return db
 }
 
+//SetupDB - database
 func SetupDB() {
 	database, err := gorm.Open(sqlite.Open("database.db"), &gorm.Config{})
 	if err != nil {
@@ -21,7 +23,7 @@ func SetupDB() {
 
 	database.AutoMigrate(&models.User{})
 	database.AutoMigrate(&models.Product{})
-	// database.AutoMigrate(&model.Transaction{})
+	database.AutoMigrate(&models.Transaction{})
 
 	db = database
 

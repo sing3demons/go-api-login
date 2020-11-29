@@ -4,6 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//User - model
 type User struct {
 	gorm.Model
 	Username string `gorm:"unique" form:"username" binding:"required"`

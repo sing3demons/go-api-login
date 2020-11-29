@@ -42,21 +42,28 @@ type updateProductForm struct {
 func SetupProductAPI(r *gin.Engine) {
 	productAPI := r.Group("/api/v2")
 	{
-		productAPI.GET("/product", getAllProduct)
-		productAPI.GET("/product/:id", getProduct)
+		productAPI.GET("/products", getAllProduct)
+		productAPI.GET("/product", getProduct)
+		productAPI.GET("/product/:id", getProductByID)
 		productAPI.POST("/product" /*interceptor.JwtVerify,*/, createProduct)
 		productAPI.PUT("/product" /*interceptor.JwtVerify,*/, editProduct)
 		productAPI.DELETE("/product/:id" /*interceptor.JwtVerify,*/, deleteProduct)
 	}
 }
 
-func getProduct(c *gin.Context) {
-	//v1
-	//var product models.Product
-	//db.GetDB().Where("id = ?", c.Param("id")).First(&product)
-	//c.JSON(http.StatusOK, gin.H{"product": product})
+func getProduct(ctx *gin.Context) {
+	var product models.Product
+	keyword := ctx.Query("keyword")
+	if keyword != "" {
+		keyword = fmt.Sprintf("%%%s%%", keyword)
+		db.GetDB().Where("name like ?", keyword).Find(&product)
+		return
+	}
+	db.GetDB().Find(&product)
+	ctx.JSON(200, product)
+}
 
-	//v2
+func getProductByID(c *gin.Context) {
 	var product *models.Product
 	var err error
 	product, err = findByID(c)
@@ -104,12 +111,6 @@ func createProduct(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
-	// version v1
-	// product := models.Product{}
-	// product.Name = c.PostForm("name")
-	// product.Stock, _ = strconv.ParseInt(c.PostForm("stock"), 10, 64)
-	// product.Price, _ = strconv.ParseFloat(c.PostForm("price"), 64)
-	// db.GetDB().Create(&product)
 	image, _ := c.FormFile("image")
 	saveImage(image, &product, c)
 
